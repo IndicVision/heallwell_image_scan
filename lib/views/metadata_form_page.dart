@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../services/upload_service.dart'; // Make sure this path matches your actual service file path
-import 'package:healwell_foot_scan/main.dart'; // Update this import to the path of your HomeScreen or equivalent screen
 
 class MetadataFormPage extends StatefulWidget {
   final String leftFootImagePath;
@@ -67,7 +66,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
         backgroundColor: Colors.blue,
       ),
       body: isUploading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Center(
                 child: Padding(

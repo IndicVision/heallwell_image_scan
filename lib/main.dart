@@ -58,6 +58,7 @@ class HomeScreenState extends State<HomeScreen> {
         tooltip: 'Capture Images',
         child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
