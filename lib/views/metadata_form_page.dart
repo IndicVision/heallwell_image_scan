@@ -22,6 +22,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
   String description = '';
   var logger = Logger();
   bool isUploading = false;
+  bool isUploadComplete = false; // Tracks if the upload process is complete
   Uint8List? leftFootImageProcessed;
   Uint8List? rightFootImageProcessed;
 
@@ -63,6 +64,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
         if (mounted) {
           setState(() {
             isUploading = false;
+            isUploadComplete = true; // Mark the upload process as complete
           });
         }
       }
@@ -71,80 +73,72 @@ class MetadataFormPageState extends State<MetadataFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Display uploading indicator or the form based on the state
+    Widget content = isUploading
+        ? Center(child: CircularProgressIndicator())
+        : Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.all(10.0),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => title = value!,
+                ),
+                const SizedBox(height: 20.0),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Description (Optional)',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.all(10.0),
+                  ),
+                  onSaved: (value) => description = value ?? '',
+                ),
+                const SizedBox(height: 20.0),
+                ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Upload Images', style: TextStyle(fontFamily: 'Poppins')),
+                ),
+              ],
+            ),
+          );
+
+    // If the upload is complete, display the images fullscreen
+    if (isUploadComplete) {
+      content = PageView(
+        children: <Widget>[
+          if (leftFootImageProcessed != null) Image.memory(leftFootImageProcessed!),
+          if (rightFootImageProcessed != null) Image.memory(rightFootImageProcessed!),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Upload Images", style: TextStyle(fontFamily: 'Poppins')),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false, // Removes the default back button
       ),
-      body: isUploading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Title',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.all(10.0),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a title';
-                            }
-                            return null;
-                          },
-                          onSaved: (value) => title = value!,
-                        ),
-                        const SizedBox(height: 20.0),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Description (Optional)',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.all(10.0),
-                          ),
-                          onSaved: (value) => description = value ?? '',
-                        ),
-                        const SizedBox(height: 20.0),
-                        ElevatedButton(
-                          onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Upload Images', style: TextStyle(fontFamily: 'Poppins')),
-                        ),
-                        if (leftFootImageProcessed != null && rightFootImageProcessed != null) ...[
-                          const SizedBox(height: 20.0),
-                          const Text("Processed Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            height: 300, // Adjust size as needed
-                            child: PageView(
-                              children: <Widget>[
-                                Image.memory(leftFootImageProcessed!),
-                                Image.memory(rightFootImageProcessed!),
-                              ],
-                            ),
-                          ),
-                        ],
-                        FloatingActionButton(
-                          onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-                          child: const Icon(Icons.home),
-                          backgroundColor: Colors.blue,
-                          tooltip: 'Home',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+      body: content,
+      floatingActionButton: isUploadComplete ? FloatingActionButton(
+        onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+        child: const Icon(Icons.home),
+        backgroundColor: Colors.blue,
+      ) : null, // Display the home button only after images are uploaded
     );
   }
 }
