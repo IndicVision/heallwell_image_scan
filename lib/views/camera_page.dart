@@ -7,6 +7,9 @@ import 'package:path/path.dart' show join;
 import 'metadata_form_page.dart';
 import 'package:logger/logger.dart'; 
 import 'package:flutter/services.dart';
+import 'display_image.dart';
+import '../services/upload_service.dart';
+import 'dart:convert';  
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 GlobalKey _previewContainerKey = GlobalKey();
@@ -32,6 +35,9 @@ class CameraPageState extends State<CameraPage> {
   double x = 0; // Add this line
   double y = 0; // Add this line
   Offset? focusPoint;
+  Uint8List? leftFootImage;
+  Uint8List? rightFootImage;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -44,7 +50,7 @@ class CameraPageState extends State<CameraPage> {
     var logger = Logger();
     try {
       cameras = await availableCameras();
-      controller = CameraController(cameras[0], ResolutionPreset.ultraHigh);
+      controller = CameraController(cameras[0], ResolutionPreset.veryHigh);
       await controller!.initialize();
       setState(() {});
     } catch (e) {
@@ -77,7 +83,10 @@ class CameraPageState extends State<CameraPage> {
     });
   }
 
+
   Future<void> onPreviewUpload() async {
+    if (!mounted) return; // Check if the widget is still in the tree.
+    
     // Save the second image and proceed to the metadata form page
     rightFootImagePath = join(
       (await getApplicationDocumentsDirectory()).path,
@@ -85,17 +94,18 @@ class CameraPageState extends State<CameraPage> {
     );
     await File(rightFootImagePath!).writeAsBytes(imageBytes!);
 
-    if (mounted) { // Check if the widget is still in the widget tree
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MetadataFormPage(
-            leftFootImagePath: leftFootImagePath!,
-            rightFootImagePath: rightFootImagePath!,
-          ),
+    if (!mounted) return; // Re-check if the widget is still in the tree after async operation.
+
+    // Correctly navigate with required arguments
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MetadataFormPage(
+          leftFootImagePath: leftFootImagePath!, // Corrected parameter name and usage
+          rightFootImagePath: rightFootImagePath!, // Corrected parameter name and usage
         ),
-      );
-    }
+      ),
+    );
   }
 
   void retakePicture() {
@@ -164,6 +174,13 @@ class CameraPageState extends State<CameraPage> {
 
  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Processing Images'), backgroundColor: Colors.blue[800]),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    
     if (controller == null || !controller!.value.isInitialized) {
       return Scaffold(
         appBar: AppBar(title: const Text('Take Picture'), backgroundColor: Colors.blue[800]),
@@ -216,7 +233,7 @@ class CameraPageState extends State<CameraPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[800],
                     ),
-                    child: Text(leftFootImagePath == null ? 'Next' : 'Upload', style: const TextStyle(color: Colors.white)),
+                    child: Text(leftFootImagePath == null ? 'Next' : 'Metadata', style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

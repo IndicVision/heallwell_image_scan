@@ -1,13 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import '../services/upload_service.dart'; // Make sure this path matches your actual service file path
+import '../services/upload_service.dart'; // Adjust this path as needed
+import 'package:http/http.dart' as http;
 
 class MetadataFormPage extends StatefulWidget {
   final String leftFootImagePath;
   final String rightFootImagePath;
 
-  const MetadataFormPage({Key? key, required this.leftFootImagePath, required this.rightFootImagePath}) : super(key: key);
+  const MetadataFormPage({Key? key, required this.leftFootImagePath, required this.rightFootImagePath})
+      : super(key: key);
 
   @override
   MetadataFormPageState createState() => MetadataFormPageState();
@@ -19,6 +22,8 @@ class MetadataFormPageState extends State<MetadataFormPage> {
   String description = '';
   var logger = Logger();
   bool isUploading = false;
+  Uint8List? leftFootImageProcessed;
+  Uint8List? rightFootImageProcessed;
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -27,26 +32,32 @@ class MetadataFormPageState extends State<MetadataFormPage> {
         isUploading = true;
       });
       try {
-        // Assuming ImageUploadService is correctly implemented and accessible
         ImageUploadService imageUploadService = ImageUploadService();
-        await imageUploadService.uploadImages(File(widget.leftFootImagePath), File(widget.rightFootImagePath), title, description);
-
-        if (!mounted) return;
-
-        logger.d("Images uploaded successfully.");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Images upload successful')),
+        List<http.Response> responses = await imageUploadService.uploadImages(
+          File(widget.leftFootImagePath), 
+          File(widget.rightFootImagePath), 
+          title, 
+          description
         );
 
-        // Navigate back to home screen or any appropriate screen
-        Navigator.popUntil(context, (route) => route.isFirst);
+        if (!mounted) return;
+
+        // Extract image data directly from the response body bytes
+        leftFootImageProcessed = responses[0].bodyBytes;
+        rightFootImageProcessed = responses[1].bodyBytes;
+
+        logger.d("Images processed successfully.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Images processed successfully')),
+        );
+
       } catch (e) {
-        logger.e("Images upload failed: $e");
+        logger.e("Image processing failed: $e");
 
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Images upload failed, please try again')),
+          SnackBar(content: Text('Image processing failed, please try again')),
         );
       } finally {
         if (mounted) {
@@ -64,6 +75,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
       appBar: AppBar(
         title: const Text("Upload Images", style: TextStyle(fontFamily: 'Poppins')),
         backgroundColor: Colors.blue,
+        automaticallyImplyLeading: false, // Removes the default back button
       ),
       body: isUploading
           ? const Center(child: CircularProgressIndicator())
@@ -107,6 +119,25 @@ class MetadataFormPageState extends State<MetadataFormPage> {
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('Upload Images', style: TextStyle(fontFamily: 'Poppins')),
+                        ),
+                        if (leftFootImageProcessed != null && rightFootImageProcessed != null) ...[
+                          const SizedBox(height: 20.0),
+                          const Text("Processed Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            height: 300, // Adjust size as needed
+                            child: PageView(
+                              children: <Widget>[
+                                Image.memory(leftFootImageProcessed!),
+                                Image.memory(rightFootImageProcessed!),
+                              ],
+                            ),
+                          ),
+                        ],
+                        FloatingActionButton(
+                          onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                          child: const Icon(Icons.home),
+                          backgroundColor: Colors.blue,
+                          tooltip: 'Home',
                         ),
                       ],
                     ),
