@@ -62,7 +62,7 @@ class ImageUploadService {
       return [leftFootImageResponse, rightFootImageResponse];
     } catch (e) {
       logger.e('Upload failed: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -77,7 +77,7 @@ class ImageUploadService {
 
   Future<http.Response> _makeAzureFunctionCall(String azureFunctionUrl, String imageUrl) async {
     final Uri uri = Uri.parse('$azureFunctionUrl&imageUrl=$imageUrl');
-    final Duration timeoutDuration = Duration(minutes: 20); // Adjust based on your needs
+    const Duration timeoutDuration = Duration(minutes: 20); // Adjust based on your needs
 
     return await http.get(uri).timeout(timeoutDuration, onTimeout: () {
       // This block will be executed in case of a timeout

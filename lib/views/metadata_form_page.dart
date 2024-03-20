@@ -49,7 +49,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
 
         logger.d("Images processed successfully.");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Images processed successfully')),
+          const SnackBar(content: Text('Images processed successfully')),
         );
 
       } catch (e) {
@@ -58,7 +58,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image processing failed, please try again')),
+          const SnackBar(content: Text('Image processing failed, please try again')),
         );
       } finally {
         if (mounted) {
@@ -75,7 +75,7 @@ class MetadataFormPageState extends State<MetadataFormPage> {
   Widget build(BuildContext context) {
     // Display uploading indicator or the form based on the state
     Widget content = isUploading
-        ? Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
         : Form(
             key: _formKey,
             child: Column(
@@ -129,15 +129,15 @@ class MetadataFormPageState extends State<MetadataFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Upload Images", style: TextStyle(fontFamily: 'Poppins')),
+        title: Text(isUploadComplete ? "Callus Detections" : "Info", style: const TextStyle(fontFamily: 'Poppins')),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false, // Removes the default back button
       ),
       body: content,
       floatingActionButton: isUploadComplete ? FloatingActionButton(
         onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-        child: const Icon(Icons.home),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.home),
       ) : null, // Display the home button only after images are uploaded
     );
   }

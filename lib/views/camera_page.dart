@@ -7,9 +7,6 @@ import 'package:path/path.dart' show join;
 import 'metadata_form_page.dart';
 import 'package:logger/logger.dart'; 
 import 'package:flutter/services.dart';
-import 'display_image.dart';
-import '../services/upload_service.dart';
-import 'dart:convert';  
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 GlobalKey _previewContainerKey = GlobalKey();
@@ -233,7 +230,7 @@ class CameraPageState extends State<CameraPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[800],
                     ),
-                    child: Text(leftFootImagePath == null ? 'Next' : 'Metadata', style: const TextStyle(color: Colors.white)),
+                    child: Text(leftFootImagePath == null ? 'Next' : 'Info', style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

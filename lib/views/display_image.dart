@@ -5,13 +5,13 @@ class DisplayImagesPage extends StatelessWidget {
   final Uint8List leftFootImage;
   final Uint8List rightFootImage;
 
-  DisplayImagesPage({required this.leftFootImage, required this.rightFootImage});
+  const DisplayImagesPage({super.key, required this.leftFootImage, required this.rightFootImage});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Processed Images'),
+        title: const Text('Processed Images'),
       ),
       body: Center(
         child: Column(
@@ -29,7 +29,7 @@ class DisplayImagesPage extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              child: Icon(Icons.home),
+              child: const Icon(Icons.home),
             ),
           ],
         ),
